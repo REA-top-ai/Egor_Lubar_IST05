@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+using namespace std;
 
 static bool load_file_bytes(const char *path, unsigned char *headers, const int size)
 {
@@ -22,31 +23,56 @@ int main(const int argc, char **argv)
 
     if (!load_file_bytes(path, headers, 54))
     {
-        std::cout << "Не удалось прочитать файл: " << path << '\n';
+        cout << "Не удалось прочитать файл: " << path << '\n';
         return 1;
     }
 
     if (headers[0] != 'B' || headers[1] != 'M')
     {
-        std::cout << "Это не BMP-файл\n";
+        cout << "Это не BMP-файл\n";
         return 1;
     }
 
-    std::cout << "Это BMP-файл\n";
-    std::cout << "2b headers.bitmap_signature : " << headers[0] << headers[1] << "\n";
-    std::cout << "4b headers.bitmap_file_size : " << (headers[2] | (headers[3] << 8) | (headers[4] << 16) | (headers[5] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_data_offset : " << (headers[10] | (headers[11] << 8) | (headers[12] << 16) | (headers[13] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_info_header_size : " << (headers[14] | (headers[15] << 8) | (headers[16] << 16) | (headers[17] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_width : " << (headers[18] | (headers[19] << 8) | (headers[20] << 16) | (headers[21] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_height : " << (headers[22] | (headers[23] << 8) | (headers[24] << 16) | (headers[25] << 24)) << "\n";
-    std::cout << "2b headers.bitmap_planes : " << (headers[26] | (headers[27] << 8)) << "\n";
-    std::cout << "2b headers.bitmap_bits_per_pixel : " << (headers[28] | (headers[29] << 8)) << "\n";
-    std::cout << "4b headers.bitmap_compression : " << (headers[30] | (headers[31] << 8) | (headers[32] << 16) | (headers[33] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_image_size : " << (headers[34] | (headers[35] << 8) | (headers[36] << 16) | (headers[37] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_XpixelsPerM : " << (headers[38] | (headers[39] << 8) | (headers[40] << 16) | (headers[41] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_YpixelsPerM : " << (headers[42] | (headers[43] << 8) | (headers[44] << 16) | (headers[45] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_ColorsUsed : " << (headers[46] | (headers[47] << 8) | (headers[48] << 16) | (headers[49] << 24)) << "\n";
-    std::cout << "4b headers.bitmap_ColorsImportant : " << (headers[50] | (headers[51] << 8) | (headers[52] << 16) | (headers[53] << 24)) << "\n";
+    cout << "Это BMP-файл\n";
+    cout << "2b headers.bitmap_signature : " << headers[0] << headers[1] << "\n";
+    cout << "4b headers.bitmap_file_size : " << (headers[2] | (headers[3] << 8) | (headers[4] << 16) | (headers[5] << 24)) << "\n";
+    cout << "4b headers.bitmap_data_offset : " << (headers[10] | (headers[11] << 8) | (headers[12] << 16) | (headers[13] << 24)) << "\n";
+    cout << "4b headers.bitmap_info_header_size : " << (headers[14] | (headers[15] << 8) | (headers[16] << 16) | (headers[17] << 24)) << "\n";
+    cout << "4b headers.bitmap_width : " << (headers[18] | (headers[19] << 8) | (headers[20] << 16) | (headers[21] << 24)) << "\n";
+    cout << "4b headers.bitmap_height : " << (headers[22] | (headers[23] << 8) | (headers[24] << 16) | (headers[25] << 24)) << "\n";
+    cout << "2b headers.bitmap_planes : " << (headers[26] | (headers[27] << 8)) << "\n";
+    cout << "2b headers.bitmap_bits_per_pixel : " << (headers[28] | (headers[29] << 8)) << "\n";
+    cout << "4b headers.bitmap_compression : " << (headers[30] | (headers[31] << 8) | (headers[32] << 16) | (headers[33] << 24)) << "\n";
+    cout << "4b headers.bitmap_image_size : " << (headers[34] | (headers[35] << 8) | (headers[36] << 16) | (headers[37] << 24)) << "\n";
+    cout << "4b headers.bitmap_XpixelsPerM : " << (headers[38] | (headers[39] << 8) | (headers[40] << 16) | (headers[41] << 24)) << "\n";
+    cout << "4b headers.bitmap_YpixelsPerM : " << (headers[42] | (headers[43] << 8) | (headers[44] << 16) | (headers[45] << 24)) << "\n";
+    cout << "4b headers.bitmap_ColorsUsed : " << (headers[46] | (headers[47] << 8) | (headers[48] << 16) | (headers[49] << 24)) << "\n";
+    cout << "4b headers.bitmap_ColorsImportant : " << (headers[50] | (headers[51] << 8) | (headers[52] << 16) | (headers[53] << 24)) << "\n";
 
+    unsigned int dataOffset = ((headers[10]) | (headers[11] << 8) | (headers[12] << 16) | (headers[13] << 24));
+    unsigned int imageSize = ((headers[34]) | (headers[35] << 8) | (headers[36] << 16) | (headers[37] << 24));
+    unsigned char *pixels = new unsigned char[imageSize];
+    ifstream imageFile(path, ios::binary);
+    imageFile.seekg(dataOffset, ios::beg);
+    imageFile.read(reinterpret_cast<char *>(pixels), imageSize);
+    int width = ((headers[18]) | (headers[19] << 8) | (headers[20] << 16) | (headers[21] << 24));
+    int height = ((headers[22]) | (headers[23] << 8) | (headers[24] << 16) | (headers[25] << 24));
+    int x = 0;
+    int y = 0;
+    int index = (y * width + x) * 3;
+    cout << "Левый нижний пиксель: R: " << static_cast<int>(pixels[index + 2]) << " G: " << static_cast<int>(pixels[index + 1]) << " B: " << static_cast<int>(pixels[index]) << "\n";
+    x = width - 1;
+    y = 0;
+    index = (y * width + x) * 3;
+    cout << "Правый нижний пиксель: R: " << static_cast<int>(pixels[index + 2]) << " G: " << static_cast<int>(pixels[index + 1]) << " B: " << static_cast<int>(pixels[index]) << "\n";
+    x = 0;
+    y = height - 1;
+    index = (y * width + x) * 3;
+    cout << "Левый верхний пиксель: R: " << static_cast<int>(pixels[index + 2]) << " G: " << static_cast<int>(pixels[index + 1]) << " B: " << static_cast<int>(pixels[index]) << "\n";
+    x = width - 1;
+    y = height - 1;
+    index = (y * width + x) * 3;
+    cout << "Правый верхний пиксель: R: " << static_cast<int>(pixels[index + 2]) << " G: " << static_cast<int>(pixels[index + 1]) << " B: " << static_cast<int>(pixels[index]) << "\n";
+    delete[] pixels;
     return 0;
 }
